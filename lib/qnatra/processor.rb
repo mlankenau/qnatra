@@ -35,6 +35,11 @@ class BaseProcessor
         settings[:host] = settings[:hosts].shift
         settings[:hosts] << settings[:host]
       end
+      if settings[:ports]
+        settings[:port] = settings[:ports].shift
+        settings[:ports] << settings[:port]
+      end
+
     end
 
 
