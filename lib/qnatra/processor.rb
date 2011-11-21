@@ -24,22 +24,15 @@ class BaseProcessor
       @success_handler << block
     end
 
+    def system_event(&block) 
+      @sysevent_handler ||= []
+      @sysevent_handler << block
+    end
+
     # define a process
     def process(args, &block)
       @processes ||= [] 
       @processes << args.merge({:block => block })
-    end
-
-    def next_host(settings)
-      if settings[:hosts]
-        settings[:host] = settings[:hosts].shift
-        settings[:hosts] << settings[:host]
-      end
-      if settings[:ports]
-        settings[:port] = settings[:ports].shift
-        settings[:ports] << settings[:port]
-      end
-
     end
 
 
@@ -51,11 +44,20 @@ class BaseProcessor
     #   settintgs[:hosts] => [host1, host2...]
     #
     def start(settings = Hash.new)
+      # ensure all handler arrays are initialized
+      @error_handler   ||= []
+      @success_handler ||= []
+      @processes       ||= []
+      @sysevent_handler ||= []
+
+      sys_event 'startup'
+
       begin
         next_host(settings)
-
+        
+        sys_event "opening client on #{settings[:host]}:#{settings[:port]}"
         client = Bunny.new(settings)
-        client.start
+        client.start 
 
         @processes.each do |p| 
           exchange = client.exchange( p[:exchange], :type => :topic )
@@ -63,11 +65,6 @@ class BaseProcessor
           queue.bind(exchange, :key => p[:key])
           p[:the_queue] = queue
         end 
-
-        # ensure all handler arrays are initialized
-        @error_handler   ||= []
-        @success_handler ||= []
-        @processes       ||= []
 
         # endless loop and pop queues
         while true
@@ -95,9 +92,32 @@ class BaseProcessor
         rescue => e
           #  we probably lost the connection to the queue 
           # the next_host call at the beginning will select the next host
+
+          sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect"
         end
       end
     end
+
+    private
+
+    def next_host(settings)
+      if settings[:hosts]
+        settings[:host] = settings[:hosts].shift
+        settings[:hosts] << settings[:host]
+      end
+      if settings[:ports]
+        settings[:port] = settings[:ports].shift
+        settings[:ports] << settings[:port]
+      end
+
+    end
+
+    def sys_event msg
+      @sysevent_handler.each do |h|
+        h.call msg 
+      end
+    end
+
   end
 end
 
