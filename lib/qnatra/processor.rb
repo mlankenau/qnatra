@@ -95,6 +95,7 @@ class BaseProcessor
         # the next_host call at the beginning will select the next host
 
         sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect"
+        sleep 1
         retry
       end
     end
