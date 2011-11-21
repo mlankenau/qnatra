@@ -33,8 +33,8 @@ Example
 
     end
 
-
-    Processor.start
+    settings = { :hosts => ['host1', 'host2', 'hostx'] }
+    Processor.start settings
 
 
 

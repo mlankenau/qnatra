@@ -30,47 +30,67 @@ class BaseProcessor
       @processes << args.merge({:block => block })
     end
 
+    def next_host(settings)
+      if settings[:hosts]
+        settings[:host] = settings[:hosts].shift
+        settings[:hosts] << settings[:host]
+      end
+    end
+
 
     # start execution
-    def start(bunny_settings = Hash.new)
-      client = Bunny.new(bunny_settings)
-      client.start
+    # 
+    # for a single rabbitmq-host set 
+    #   settings[:host] => hostname
+    # for a cluster set
+    #   settintgs[:hosts] => [host1, host2...]
+    #
+    def start(settings = Hash.new)
+      begin
+        next_host(settings)
 
-      @processes.each do |p| 
-        exchange = client.exchange( p[:exchange], :type => :topic )
-        queue = client.queue( p[:queue] )
-        queue.bind(exchange, :key => p[:key])
-        p[:the_queue] = queue
-      end 
+        client = Bunny.new(settings)
+        client.start
 
-      # ensure all handler arrays are initialized
-      @error_handler   ||= []
-      @success_handler ||= []
-      @processes       ||= []
-
-      # endless loop and pop queues
-      while true
-        got_a_msg = false
         @processes.each do |p| 
-          msg = p[:the_queue].pop :ack => true
-          unless msg[:payload] == :queue_empty
-            begin
-              start_time = Time.new
-              p[:block].call msg 
-              duration = (Time.new - start_time).to_f * 1000
-              p[:the_queue].ack
-              @success_handler.each do |h|
-                h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
-              end
-            rescue => e
-              @error_handler.each do |h|
-                h.call :msg => msg, :error => e, :queue => p[:queue], :exchange => p[:exchange]
-              end
-            end
-            got_a_msg = true
-          end
+          exchange = client.exchange( p[:exchange], :type => :topic )
+          queue = client.queue( p[:queue] )
+          queue.bind(exchange, :key => p[:key])
+          p[:the_queue] = queue
         end 
-        sleep 0.1 unless got_a_msg # wait 100ms if all queues are empty
+
+        # ensure all handler arrays are initialized
+        @error_handler   ||= []
+        @success_handler ||= []
+        @processes       ||= []
+
+        # endless loop and pop queues
+        while true
+          got_a_msg = false
+          @processes.each do |p| 
+            msg = p[:the_queue].pop :ack => true
+            unless msg[:payload] == :queue_empty
+              begin
+                start_time = Time.new
+                p[:block].call msg 
+                duration = (Time.new - start_time).to_f * 1000
+                p[:the_queue].ack
+                @success_handler.each do |h|
+                  h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
+                end
+              rescue => e
+                @error_handler.each do |h|
+                  h.call :msg => msg, :error => e, :queue => p[:queue], :exchange => p[:exchange]
+                end
+              end
+              got_a_msg = true
+            end
+          end 
+          sleep 0.1 unless got_a_msg # wait 100ms if all queues are empty
+        rescue => e
+          #  we probably lost the connection to the queue 
+          # the next_host call at the beginning will select the next host
+        end
       end
     end
   end
