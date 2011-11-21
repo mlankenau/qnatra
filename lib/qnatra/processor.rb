@@ -12,6 +12,7 @@ require 'bunny'
 class BaseProcessor
 
   class << self
+    
 
     def error(&block)
       @error_handler ||= []
@@ -31,8 +32,8 @@ class BaseProcessor
 
 
     # start execution
-    def start
-      client = Bunny.new()
+    def start(bunny_settings = Hash.new)
+      client = Bunny.new(bunny_settings)
       client.start
 
       @processes.each do |p| 
@@ -51,12 +52,13 @@ class BaseProcessor
       while true
         got_a_msg = false
         @processes.each do |p| 
-          msg = p[:the_queue].pop
+          msg = p[:the_queue].pop :ack => true
           unless msg[:payload] == :queue_empty
             begin
               start_time = Time.new
               p[:block].call msg 
               duration = (Time.new - start_time).to_f * 1000
+              p[:the_queue].ack
               @success_handler.each do |h|
                 h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
               end
