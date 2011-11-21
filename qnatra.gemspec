@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email       = ["marcus.lankenau@friendscout24.de"]
   s.homepage    = ""
   s.summary     = %q{Framework to implement servies based on AMQP inspired by Sinatra web framework}
-  s.description = %q{TODO: Write a gem description}
+  s.description = %q{Qnatra include does the plumming with bunny to operater you queues}
 
   s.rubyforge_project = "qnatra"
 
