@@ -89,12 +89,12 @@ class BaseProcessor
             end
           end 
           sleep 0.1 unless got_a_msg # wait 100ms if all queues are empty
-        rescue => e
-          #  we probably lost the connection to the queue 
-          # the next_host call at the beginning will select the next host
-
-          sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect"
         end
+      rescue => e
+        #  we probably lost the connection to the queue 
+        # the next_host call at the beginning will select the next host
+
+        sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect"
       end
     end
 
