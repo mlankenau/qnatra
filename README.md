@@ -17,6 +17,13 @@ Example
 
     class Processor <  BaseProcessor
 
+
+      system_message do |arg|
+        puts "System information: #{arg}"
+      end
+
+
+
       error do |args|
         puts "Error #{args[:error]} for message: #{args[:msg][:payload]}" 
       end
