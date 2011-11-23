@@ -52,7 +52,7 @@ class BaseProcessor
 
       sys_event 'startup'
 
-      pop_settings = settings.select { |k,v| k == :ack }
+      pop_settings = settings.reject { |k,v| k != :ack }
 
       begin
         next_host(settings)
