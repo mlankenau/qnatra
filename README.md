@@ -18,7 +18,7 @@ Example
     class Processor <  BaseProcessor
 
 
-      system_message do |arg|
+      system_event do |arg|
         puts "System information: #{arg}"
       end
 
