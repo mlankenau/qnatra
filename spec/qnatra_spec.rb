@@ -3,6 +3,10 @@ require "lib/qnatra/processor"
 require 'rspec'
 require 'bunny'
 
+
+rabbit_host = ENV['RABBIT_HOST'] || 'localhost'
+rabbit_port = ENV['RABBIT_PORT'] || 5672
+
 class TestProcessorWithAck < BaseProcessor
 
   system_event do |msg|
@@ -27,7 +31,7 @@ describe BaseProcessor do
     client.stop
 
     @thread = Thread.new do
-      TestProcessorWithAck.start :ack => true
+      TestProcessorWithAck.start :ack => true, :host => rabbit_host, :port => rabbit_port
     end
   end
 
