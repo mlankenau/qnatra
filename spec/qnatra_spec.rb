@@ -40,7 +40,7 @@ describe BaseProcessor do
   end
 
   it "should requeue messages, that raise an exeception" do
-    client = Bunny.new
+    client = Bunny.new :host => rabbit_host, :port => rabbit_port
     client.start
 
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
@@ -68,7 +68,7 @@ end
 describe BaseProcessor do
 
   before do
-    client = Bunny.new 
+    client = Bunny.new :host => rabbit_host, :port => rabbit_port
     client.start
     queue = client.queue('qnatra.test.queue')
     begin
@@ -86,7 +86,7 @@ describe BaseProcessor do
   end
 
   it "should not requeue messages" do
-    client = Bunny.new
+    client = Bunny.new :host => rabbit_host, :port => rabbit_port
     client.start
 
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
