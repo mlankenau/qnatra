@@ -47,9 +47,9 @@ describe BaseProcessor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 1 
+    sleep 3 
     TestProcessorWithAck.stop
-    sleep 1
+    sleep 3 
 
     queue = client.queue('qnatra.test.queue')
 
@@ -78,7 +78,7 @@ describe BaseProcessor do
     client.stop
 
     @thread = Thread.new do
-      TestProcessorWithAck.start
+      TestProcessorWithAck.start :host => rabbit_host, :port => rabbit_port
     end
   end
 
@@ -93,9 +93,9 @@ describe BaseProcessor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 1 
+    sleep 3 
     TestProcessorWithAck.stop
-    sleep 1
+    sleep 3
 
     queue = client.queue('qnatra.test.queue')
     
