@@ -6,6 +6,7 @@ require 'bunny'
 
 rabbit_host = ENV['RABBIT_HOST'] || 'localhost'
 rabbit_port = ENV['RABBIT_PORT'] || 5672
+bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
 class TestProcessorWithAck < BaseProcessor
 
@@ -22,7 +23,7 @@ end
 describe BaseProcessor do
 
   before do
-    client = Bunny.new 
+    client = Bunny.new bunny_settings 
     client.start
     queue = client.queue('qnatra.test.queue')
     begin
@@ -40,7 +41,7 @@ describe BaseProcessor do
   end
 
   it "should requeue messages, that raise an exeception" do
-    client = Bunny.new :host => rabbit_host, :port => rabbit_port
+    client = Bunny.new bunny_settings
     client.start
 
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
@@ -68,7 +69,7 @@ end
 describe BaseProcessor do
 
   before do
-    client = Bunny.new :host => rabbit_host, :port => rabbit_port
+    client = Bunny.new bunny_settings
     client.start
     queue = client.queue('qnatra.test.queue')
     begin
@@ -86,7 +87,7 @@ describe BaseProcessor do
   end
 
   it "should not requeue messages" do
-    client = Bunny.new :host => rabbit_host, :port => rabbit_port
+    client = Bunny.new bunny_settings
     client.start
 
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
