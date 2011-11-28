@@ -51,6 +51,7 @@ class BaseProcessor
       @sysevent_handler ||= []
 
       sys_event 'startup'
+      @stopped = false
 
       pop_settings = settings.reject { |k,v| k != :ack }
 
@@ -69,7 +70,7 @@ class BaseProcessor
         end 
 
         # endless loop and pop queues
-        while true
+        while !@stopped 
           got_a_msg = false
           @processes.each do |p| 
             msg = p[:the_queue].pop pop_settings 
@@ -98,8 +99,13 @@ class BaseProcessor
 
         sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect"
         sleep 1
-        retry
+        retry unless @stopped
       end
+      client.stop
+    end
+
+    def stop
+      @stopped = true
     end
 
     private
