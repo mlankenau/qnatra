@@ -9,20 +9,26 @@ rabbit_port = ENV['RABBIT_PORT'] || 5672
 bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
 class TestProcessorWithAck < BaseProcessor
-
   system_event do |msg|
     puts "SYSTEM_EVENT: #{msg}"
   end
-
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => true, :key=>"*" do |msg|
     raise "something went wrong"
   end    
+end
 
+class TestProcessorWithoutAck < BaseProcessor
+  system_event do |msg|
+    puts "SYSTEM_EVENT: #{msg}"
+  end
+  process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => false, :key=>"*" do |msg|
+    raise "something went wrong"
+  end    
 end
 
 describe BaseProcessor do
 
-  before do
+  before(:each) do
     client = Bunny.new bunny_settings 
     client.start
     queue = client.queue('qnatra.test.queue')
@@ -31,16 +37,17 @@ describe BaseProcessor do
     end while msg[:payload] != :queue_empty
     client.stop
 
-    @thread = Thread.new do
-      TestProcessorWithAck.start :ack => true, :host => rabbit_host, :port => rabbit_port
-    end
   end
 
-  after do
+  after(:each) do
     @thread.kill
   end
 
   it "should requeue messages, that raise an exeception" do
+    @thread = Thread.new do
+      TestProcessorWithAck.start :host => rabbit_host, :port => rabbit_port
+    end
+
     client = Bunny.new bunny_settings
     client.start
 
@@ -62,31 +69,11 @@ describe BaseProcessor do
     client.stop
   end
 
-end
-
-
-
-describe BaseProcessor do
-
-  before do
-    client = Bunny.new bunny_settings
-    client.start
-    queue = client.queue('qnatra.test.queue')
-    begin
-      msg = queue.pop
-    end while msg[:payload] != :queue_empty
-    client.stop
-
-    @thread = Thread.new do
-      TestProcessorWithAck.start :host => rabbit_host, :port => rabbit_port
-    end
-  end
-
-  after do
-    @thread.kill
-  end
-
   it "should not requeue messages" do
+    @thread = Thread.new do
+      TestProcessorWithoutAck.start :host => rabbit_host, :port => rabbit_port
+    end
+
     client = Bunny.new bunny_settings
     client.start
 
@@ -94,7 +81,7 @@ describe BaseProcessor do
     ex.publish("content dsnt matter", :key => 'mail')
 
     sleep 3 
-    TestProcessorWithAck.stop
+    TestProcessorWithoutAck.stop
     sleep 3
 
     queue = client.queue('qnatra.test.queue')
@@ -104,7 +91,5 @@ describe BaseProcessor do
 
     client.stop
   end
-
 end
-
 

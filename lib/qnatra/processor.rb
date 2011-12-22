@@ -73,13 +73,13 @@ class BaseProcessor
         while !@stopped 
           got_a_msg = false
           @processes.each do |p| 
-            msg = p[:the_queue].pop pop_settings 
+            msg = p[:the_queue].pop :ack => p[:ack] 
             unless msg[:payload] == :queue_empty
               begin
                 start_time = Time.new
                 p[:block].call msg 
                 duration = (Time.new - start_time).to_f * 1000
-                p[:the_queue].ack if pop_settings.key? :ack 
+                p[:the_queue].ack if p[:ack] 
                 @success_handler.each do |h|
                   h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
                 end
