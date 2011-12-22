@@ -22,8 +22,6 @@ Example
         puts "System information: #{arg}"
       end
 
-
-
       error do |args|
         puts "Error #{args[:error]} for message: #{args[:msg][:payload]}" 
       end
@@ -32,10 +30,18 @@ Example
         puts "we processed a message from #{args[:queue]} and routing key #{args[:msg][:delivery_details=][:routing_key]}")
       end
 
+
+      # define an outbound exchange (an exchange we want to send messages to)
+      outbound :send_mail,  :exchange => "some_other_exchange"
+
+
+      # define an exchange and a queue we receive from
       process :exchange => "my_exchange", :queue => "my_queue", :key=>"a_routeing_key" do |msg|
         msg_text = msg[:payload]
         puts "processing message......"
         # todo: implement processing :)
+
+        post(:send_mail, "Some message", :key => 'some_routing_key')
       end
 
     end

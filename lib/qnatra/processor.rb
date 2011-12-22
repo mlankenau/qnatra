@@ -36,6 +36,17 @@ class BaseProcessor
     end
 
 
+    def outbound(name, exchange, type)
+      @outbounds ||= {}
+      @outbounds[name] = {:exchange_name => exchange, :type => type }
+    end
+
+    def post(outbound_name, payload, opts = {})
+      outbound = @outbounds[outbound_name]
+      outbound[:exchange].publish(payload, opts) 
+    end
+
+
     # start execution
     # 
     # for a single rabbitmq-host set 
@@ -61,6 +72,12 @@ class BaseProcessor
         sys_event "opening client on #{settings[:host]}:#{settings[:port]}"
         client = Bunny.new(settings)
         client.start 
+
+        @outbounds ||= {}
+        @outbounds.each do |k,v| 
+          exchange = client.exchange(v[:exchange_name], :type => v[:type])
+          @outbounds[k][:exchange] = exchange
+        end
 
         @processes.each do |p| 
           exchange = client.exchange( p[:exchange], :type => :topic )
@@ -97,7 +114,7 @@ class BaseProcessor
         #  we probably lost the connection to the queue 
         # the next_host call at the beginning will select the next host
 
-        sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect"
+        sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect. Backtrace: #{e.backtrace}"
         sleep 1
         retry unless @stopped
       end
