@@ -136,7 +136,8 @@ class BaseProcessor
         settings[:port] = settings[:ports].shift
         settings[:ports] << settings[:port]
       end
-
+      raise ArgumentError.new "Host address is empty" if settings[:host].nil?
+      raise ArgumentError.new "Port is empty" if settings[:port].nil?
     end
 
     def sys_event msg
