@@ -114,7 +114,7 @@ class BaseProcessor
         #  we probably lost the connection to the queue 
         # the next_host call at the beginning will select the next host
 
-        sys_event "we received excpetion #{e.inspect}, we switch to next rabbit host and reconnect. Backtrace: #{e.backtrace}"
+        sys_event "we received exception #{e.inspect}, we switch to next rabbit host and reconnect. Backtrace: #{e.backtrace}"
         sleep 1
         retry unless @stopped
       end
