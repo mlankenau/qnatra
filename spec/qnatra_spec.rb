@@ -43,6 +43,29 @@ describe BaseProcessor do
     @thread.kill
   end
 
+  it "should not start if there is not a valid host to connect to" do
+    @thread = Thread.new do
+      TestProcessorWithAck.start :port => rabbit_port
+    end
+
+    client = Bunny.new bunny_settings
+    client.start
+
+    ex = client.exchange('qnatra.test.exchange', :type => :topic)
+    ex.publish("content dsnt matter", :key => 'mail')
+
+    sleep 3 
+    TestProcessorWithAck.stop
+    sleep 3 
+
+    queue = client.queue('qnatra.test.queue')
+
+    msg = queue.pop
+    msg[:payload].should eq("content dsnt matter")
+
+    client.stop
+  end
+  
   it "should requeue messages, that raise an exeception" do
     @thread = Thread.new do
       TestProcessorWithAck.start :host => rabbit_host, :port => rabbit_port
