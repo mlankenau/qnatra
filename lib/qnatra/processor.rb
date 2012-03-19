@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'bunny'
+require 'thread'
 
 #
 # Baseclass to implement processors to process queue events (consumer role)
@@ -46,6 +47,10 @@ class BaseProcessor
       outbound[:exchange].publish(payload, opts) 
     end
 
+    def ensync(&block)
+      @sync_queue << block  
+    end
+
 
     # start execution
     # 
@@ -60,7 +65,7 @@ class BaseProcessor
       @success_handler ||= []
       @processes       ||= []
       @sysevent_handler ||= []
-
+      @sync_queue ||= Queue.new
       sys_event 'startup'
       @stopped = false
 
@@ -82,7 +87,13 @@ class BaseProcessor
         @processes.each do |p| 
           exchange = client.exchange( p[:exchange], :type => :topic )
           queue = client.queue( p[:queue] )
-          queue.bind(exchange, :key => p[:key])
+          if p[:key].is_a? Array
+            p[:key].each do | rk |
+              queue.bind(exchange, :key => rk)
+            end
+          else
+            queue.bind(exchange, :key => p[:key])
+          end
           p[:the_queue] = queue
         end 
 
@@ -108,7 +119,12 @@ class BaseProcessor
               got_a_msg = true
             end
           end 
-          sleep 0.1 unless got_a_msg # wait 100ms if all queues are empty
+          while !@sync_queue.empty? 
+            blck = @sync_queue.pop(true)
+            blck.call
+            got_a_msg = true
+          end 
+          #sleep 0.01 unless got_a_msg # wait 100ms if all queues are empty
         end
       rescue => e
         #  we probably lost the connection to the queue 
