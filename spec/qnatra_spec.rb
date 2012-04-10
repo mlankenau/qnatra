@@ -45,7 +45,7 @@ describe BaseProcessor do
 
   it "should not start if there is not a valid host to connect to" do
     @thread = Thread.new do
-      TestProcessorWithAck.start :port => rabbit_port
+      TestProcessorWithAck.start :port => rabbit_port, :host => "localhost"
     end
 
     client = Bunny.new bunny_settings
