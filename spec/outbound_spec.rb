@@ -10,10 +10,12 @@ bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
 
 class TestProcessorWithOutbound < BaseProcessor
-  outbound :sample_outbound, 'qnatra.test.sample_exchange', :topic
+  outbound :sample_outbound, 'sample_outbound_exchange', :topic
 
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :key=>"*" do |msg|
+    puts "hurra, got a msg"
     post(:sample_outbound, msg[:payload], :key => 'mail')
+    puts "finished sending"
   end    
 end
 
