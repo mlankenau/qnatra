@@ -111,7 +111,8 @@ class BaseProcessor
                 @success_handler.each do |h|
                   h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
                 end
-              rescue => e
+              rescue Exception => e
+                # to catch realy all exceptions
                 @error_handler.each do |h|
                   h.call :msg => msg, :error => e, :queue => p[:queue], :exchange => p[:exchange]
                 end
