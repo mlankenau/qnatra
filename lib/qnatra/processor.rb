@@ -18,7 +18,7 @@ module Qnatra
       # You can add several error-handlers giving the error-method a block to execute with every error.
       # 
       # Here is a example how to use it.
-      #  class ErrorLoggingProcessor < BaseProcessor
+      #  class ErrorLoggingProcessor < Qnatra::Processor
       #    error do |exception|
       #      # Do something with the error, for example:
       #      Logger.error exception.message
@@ -29,6 +29,15 @@ module Qnatra
         @error_handler << block
       end
   
+      # For every successful handled Message, these handlers are called.
+      #
+      # Of course, it can be used for Logging again:
+      #   class SuccessLoggingProcessor < Qnatra::Processor
+      #     success do |meta|
+      #       # meta is a Hash containing :msg, :queue, :exchange, :topic and :duration
+      #       Logger.info "Message %s/%s/%s in %dms" % [:queue, :exchange, :topic].map { |s| meta[s] }
+      #     end
+      #   end
       def success(&block)
         @success_handler ||= []
         @success_handler << block
