@@ -17,10 +17,13 @@ GEM
     rspec-expectations (2.8.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.8.0)
+    yard (0.7.5)
 
 PLATFORMS
   java
+  ruby
 
 DEPENDENCIES
   qnatra!
   rspec
+  yard

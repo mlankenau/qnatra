@@ -1,5 +1,5 @@
 require 'rubygems'
-require "lib/qnatra/processor"
+require "qnatra/processor"
 require 'rspec'
 require 'bunny'
 

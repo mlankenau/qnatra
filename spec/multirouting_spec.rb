@@ -1,4 +1,4 @@
-require "lib/qnatra/processor"
+require "qnatra/processor"
 require 'test/unit'
 require 'rspec'
 require 'bunny'
