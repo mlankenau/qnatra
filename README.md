@@ -15,7 +15,7 @@ How to use
 Example
 
 
-    class Processor <  BaseProcessor
+    class Processor <  Qnatra::Processor
 
 
       system_event do |arg|
