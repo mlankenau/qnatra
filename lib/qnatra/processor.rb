@@ -31,7 +31,7 @@ module Qnatra
   
       # For every successful handled Message, these handlers are called.
       #
-      # Of course, it can be used for Logging again:
+      # Of course, it can be used for Logging:
       #   class SuccessLoggingProcessor < Qnatra::Processor
       #     success do |meta|
       #       # meta is a Hash containing :msg, :queue, :exchange, :topic and :duration
@@ -43,6 +43,15 @@ module Qnatra
         @success_handler << block
       end
   
+      # Handling of the three system events: startup, connect and error. On each, all system handlers are called with the event and some information-string.
+      #
+      # How about a Logging-Example:
+      #   class SystemLoggingProcessor < Qnatra::Processor
+      #     system_event do |event, message|
+      #       # Possible events: :startup, :connect, :error
+      #       Logger.info "System #{event}: #{message}
+      #     end
+      #   end
       def system_event(&block) 
         @sysevent_handler ||= []
         @sysevent_handler << block
@@ -84,7 +93,7 @@ module Qnatra
         @processes       ||= []
         @sysevent_handler ||= []
         @sync_queue ||= Queue.new
-        sys_event 'startup'
+        sys_event :startup, 'startup'
         @stopped = false
   
         pop_settings = settings.reject { |k,v| k != :ack }
@@ -92,7 +101,7 @@ module Qnatra
         begin
           next_host(settings)
           
-          sys_event "opening client on #{settings[:host]}:#{settings[:port]}"
+          sys_event :connect, "opening client on #{settings[:host]}:#{settings[:port]}"
           client = Bunny.new(settings)
           client.start 
   
@@ -149,7 +158,7 @@ module Qnatra
           #  we probably lost the connection to the queue 
           # the next_host call at the beginning will select the next host
   
-          sys_event "we received exception #{e.inspect}, we switch to next rabbit host and reconnect. Backtrace: #{e.backtrace}"
+          sys_event :error, "we received exception #{e.inspect}, we switch to next rabbit host and reconnect. Backtrace: #{e.backtrace}"
           sleep 1
           retry unless @stopped
         end
@@ -175,9 +184,9 @@ module Qnatra
         raise ArgumentError.new "Port is empty" if settings[:port].nil?
       end
   
-      def sys_event msg
+      def sys_event status, msg
         @sysevent_handler.each do |h|
-          h.call msg 
+          h.call status, msg 
         end
       end
   
