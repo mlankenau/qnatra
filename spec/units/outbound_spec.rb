@@ -1,8 +1,4 @@
-require 'rubygems'
-require "qnatra"
-require 'rspec'
-require 'bunny'
-
+require 'spec_helper'
 
 rabbit_host = ENV['RABBIT_HOST'] || 'localhost'
 rabbit_port = ENV['RABBIT_PORT'] || 5672
