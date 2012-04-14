@@ -14,6 +14,8 @@ module Qnatra
   class Processor
 
     class << self
+
+      # @group Setup of Handlers
       
       # You can add several error-handlers giving the error-method a block to execute with every error.
       # 
@@ -56,6 +58,8 @@ module Qnatra
         @sysevent_handler ||= []
         @sysevent_handler << block
       end
+
+      # @endgroup
   
       # define a process
       def process(args, &block)
