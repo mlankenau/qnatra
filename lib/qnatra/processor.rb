@@ -5,27 +5,36 @@ require 'thread'
 #
 # Baseclass to implement processors to process queue events (consumer role)
 #
-# define processing instructions in a sintra style like:
-#    process :exchange => "public.mail.notifications", :queue => "mail.notification.processor1", :key=>"*" do |msg|
-#       puts "received msg #{msg[:payload]}"
-#    end
-#
 module Qnatra
   class Processor
 
     class << self
 
+      # @group Code to process for every Message received
+  
+      # Define processing instructions in a sintra style
+      #
+      # like:
+      #    process :exchange => "public.mail.notifications", :queue => "mail.notification.processor1", :key=>"*" do |msg|
+      #       puts "received msg #{msg[:payload]}"
+      #    end
+      def process(args, &block)
+        @processes ||= [] 
+        @processes << args.merge({:block => block })
+      end
+  
+      # @endgroup
       # @group Setup of Handlers
       
       # You can add several error-handlers giving the error-method a block to execute with every error.
       # 
       # Here is a example how to use it.
-      #  class ErrorLoggingProcessor < Qnatra::Processor
-      #    error do |exception|
-      #      # Do something with the error, for example:
-      #      Logger.error exception.message
+      #    class ErrorLoggingProcessor < Qnatra::Processor
+      #      error do |exception|
+      #        # Do something with the error, for example:
+      #        Logger.error exception.message
+      #      end
       #    end
-      #  end
       def error(&block)
         @error_handler ||= []
         @error_handler << block
@@ -34,12 +43,12 @@ module Qnatra
       # For every successful handled Message, these handlers are called.
       #
       # Of course, it can be used for Logging:
-      #   class SuccessLoggingProcessor < Qnatra::Processor
-      #     success do |meta|
-      #       # meta is a Hash containing :msg, :queue, :exchange, :topic and :duration
-      #       Logger.info "Message %s/%s/%s in %dms" % [:queue, :exchange, :topic].map { |s| meta[s] }
-      #     end
-      #   end
+      #    class SuccessLoggingProcessor < Qnatra::Processor
+      #      success do |meta|
+      #        # meta is a Hash containing :msg, :queue, :exchange, :topic and :duration
+      #        Logger.debug "Message %s/%s/%s in %dms" % [:queue, :exchange, :topic].map { |s| meta[s] }
+      #      end
+      #    end
       def success(&block)
         @success_handler ||= []
         @success_handler << block
@@ -48,25 +57,18 @@ module Qnatra
       # Handling of the three system events: startup, connect and error. On each, all system handlers are called with the event and some information-string.
       #
       # How about a Logging-Example:
-      #   class SystemLoggingProcessor < Qnatra::Processor
-      #     system_event do |event, message|
-      #       # Possible events: :startup, :connect, :error
-      #       Logger.info "System #{event}: #{message}
-      #     end
-      #   end
+      #    class SystemLoggingProcessor < Qnatra::Processor
+      #      system_event do |event, message|
+      #        # possible events are :startup, :connect, :error
+      #        Logger.info "System #{event}: #{message}"
+      #      end
+      #    end
       def system_event(&block) 
         @sysevent_handler ||= []
         @sysevent_handler << block
       end
 
       # @endgroup
-  
-      # define a process
-      def process(args, &block)
-        @processes ||= [] 
-        @processes << args.merge({:block => block })
-      end
-  
   
       def outbound(name, exchange, type)
         @outbounds ||= {}
