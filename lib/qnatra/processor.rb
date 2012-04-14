@@ -156,9 +156,9 @@ module Qnatra
             msg = p[:the_queue].pop :ack => p[:ack] 
             unless msg[:payload] == :queue_empty
               begin
-                start_time = Time.new
-                p[:block].call msg 
-                duration = (Time.new - start_time).to_f * 1000
+                duration = duration_of do
+                  p[:block].call msg 
+                end
                 p[:the_queue].ack if p[:ack] 
                 @success_handler.each do |h|
                   h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
@@ -198,6 +198,12 @@ module Qnatra
         @sysevent_handler.each do |h|
           h.call status, msg 
         end
+      end
+
+      def duration_of(&block)
+        start_time = Time.new
+        block.call
+        (Time.new - start_time).to_f * 1000
       end
   
     end
