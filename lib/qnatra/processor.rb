@@ -200,6 +200,7 @@ module Qnatra
         end
       end
 
+      # Tracks the time (in ms), a block takes.
       def duration_of(&block)
         start_time = Time.new
         block.call
