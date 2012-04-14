@@ -1,5 +1,5 @@
 require 'rubygems'
-require "qnatra/processor"
+require "qnatra"
 require 'rspec'
 require 'bunny'
 
@@ -8,7 +8,7 @@ rabbit_host = ENV['RABBIT_HOST'] || 'localhost'
 rabbit_port = ENV['RABBIT_PORT'] || 5672
 bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
-class TestProcessorWithAck < BaseProcessor
+class TestProcessorWithAck < Qnatra::Processor
   system_event do |msg|
     puts "SYSTEM_EVENT: #{msg}"
   end
@@ -17,7 +17,7 @@ class TestProcessorWithAck < BaseProcessor
   end    
 end
 
-class TestProcessorWithoutAck < BaseProcessor
+class TestProcessorWithoutAck < Qnatra::Processor
   system_event do |msg|
     puts "SYSTEM_EVENT: #{msg}"
   end
@@ -26,7 +26,7 @@ class TestProcessorWithoutAck < BaseProcessor
   end    
 end
 
-describe BaseProcessor do
+describe Qnatra::Processor do
 
   before(:each) do
     client = Bunny.new bunny_settings 

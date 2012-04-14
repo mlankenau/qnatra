@@ -1,5 +1,5 @@
 require 'rubygems'
-require "qnatra/processor"
+require "qnatra"
 require 'rspec'
 require 'bunny'
 
@@ -9,7 +9,7 @@ rabbit_port = ENV['RABBIT_PORT'] || 5672
 bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
 
-class TestProcessorWithOutbound < BaseProcessor
+class TestProcessorWithOutbound < Qnatra::Processor
   outbound :sample_outbound, 'sample_outbound_exchange', :topic
 
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :key=>"*" do |msg|
