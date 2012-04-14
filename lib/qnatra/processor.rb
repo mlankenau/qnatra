@@ -131,35 +131,7 @@ module Qnatra
           end 
   
           # endless loop and pop queues
-          while !@stopped 
-            got_a_msg = false
-            @processes.each do |p| 
-              msg = p[:the_queue].pop :ack => p[:ack] 
-              unless msg[:payload] == :queue_empty
-                begin
-                  start_time = Time.new
-                  p[:block].call msg 
-                  duration = (Time.new - start_time).to_f * 1000
-                  p[:the_queue].ack if p[:ack] 
-                  @success_handler.each do |h|
-                    h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
-                  end
-                rescue Exception => e
-                  # to catch realy all exceptions
-                  @error_handler.each do |h|
-                    h.call :msg => msg, :error => e, :queue => p[:queue], :exchange => p[:exchange]
-                  end
-                end
-                got_a_msg = true
-              end
-            end 
-            while !@sync_queue.empty? 
-              blck = @sync_queue.pop(true)
-              blck.call
-              got_a_msg = true
-            end 
-            #sleep 0.01 unless got_a_msg # wait 100ms if all queues are empty
-          end
+	  process_loop
         rescue => e
           #  we probably lost the connection to the queue 
           # the next_host call at the beginning will select the next host
@@ -177,6 +149,38 @@ module Qnatra
   
       private
   
+      def process_loop
+        while !@stopped 
+          got_a_msg = false
+          @processes.each do |p| 
+            msg = p[:the_queue].pop :ack => p[:ack] 
+            unless msg[:payload] == :queue_empty
+              begin
+                start_time = Time.new
+                p[:block].call msg 
+                duration = (Time.new - start_time).to_f * 1000
+                p[:the_queue].ack if p[:ack] 
+                @success_handler.each do |h|
+                  h.call :msg => msg, :queue => p[:queue], :exchange => p[:exchange], :topic => msg[:topic], :duration => duration
+                end
+              rescue Exception => e
+                # to catch realy all exceptions
+                @error_handler.each do |h|
+                  h.call :msg => msg, :error => e, :queue => p[:queue], :exchange => p[:exchange]
+                end
+              end
+              got_a_msg = true
+            end
+          end 
+          while !@sync_queue.empty? 
+            blck = @sync_queue.pop(true)
+            blck.call
+            got_a_msg = true
+          end 
+          #sleep 0.01 unless got_a_msg # wait 100ms if all queues are empty
+        end
+      end
+
       def next_host(settings)
         if settings[:hosts]
           settings[:host] = settings[:hosts].shift
