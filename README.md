@@ -18,8 +18,8 @@ Example
     class Processor <  Qnatra::Processor
 
 
-      system_event do |arg|
-        puts "System information: #{arg}"
+      system_event do |status, message|
+        puts "System #{status}: #{message}"
       end
 
       error do |args|
