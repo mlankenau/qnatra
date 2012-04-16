@@ -10,7 +10,7 @@ class TestProcessorWithAck < Qnatra::Processor
   end
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => true, :key=>"*" do |msg|
     raise "something went wrong"
-  end    
+  end
 end
 
 class TestProcessorWithoutAck < Qnatra::Processor
@@ -19,13 +19,13 @@ class TestProcessorWithoutAck < Qnatra::Processor
   end
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => false, :key=>"*" do |msg|
     raise "something went wrong"
-  end    
+  end
 end
 
 describe Qnatra::Processor do
 
   before(:each) do
-    client = Bunny.new bunny_settings 
+    client = Bunny.new bunny_settings
     client.start
     queue = client.queue('qnatra.test.queue')
     begin
@@ -50,9 +50,9 @@ describe Qnatra::Processor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithAck.stop
-    sleep 3 
+    sleep 3
 
     queue = client.queue('qnatra.test.queue')
 
@@ -61,7 +61,7 @@ describe Qnatra::Processor do
 
     client.stop
   end
-  
+
   it "should requeue messages, that raise an exeception" do
     @thread = Thread.new do
       TestProcessorWithAck.start :host => rabbit_host, :port => rabbit_port
@@ -73,9 +73,9 @@ describe Qnatra::Processor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithAck.stop
-    sleep 3 
+    sleep 3
 
     queue = client.queue('qnatra.test.queue')
 
@@ -99,12 +99,12 @@ describe Qnatra::Processor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithoutAck.stop
     sleep 3
 
     queue = client.queue('qnatra.test.queue')
-    
+
     msg = queue.pop
     msg[:payload].should eq(:queue_empty)
 
