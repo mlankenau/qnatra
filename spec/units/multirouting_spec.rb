@@ -1,14 +1,10 @@
-require "lib/qnatra/processor"
-require 'test/unit'
-require 'rspec'
-require 'bunny'
-
+require 'spec_helper'
 
 rabbit_host = ENV['RABBIT_HOST'] || 'localhost'
 rabbit_port = ENV['RABBIT_PORT'] || 5672
 bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
-class TestProcessorWithMultirouting < BaseProcessor
+class TestProcessorWithMultirouting < Qnatra::Processor
   system_event do |msg|
     puts "SYSTEM_EVENT: #{msg}"
   end

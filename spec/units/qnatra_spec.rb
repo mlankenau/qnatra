@@ -1,35 +1,31 @@
-require 'rubygems'
-require "lib/qnatra/processor"
-require 'rspec'
-require 'bunny'
-
+require 'spec_helper'
 
 rabbit_host = ENV['RABBIT_HOST'] || 'localhost'
 rabbit_port = ENV['RABBIT_PORT'] || 5672
 bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
-class TestProcessorWithAck < BaseProcessor
+class TestProcessorWithAck < Qnatra::Processor
   system_event do |msg|
     puts "SYSTEM_EVENT: #{msg}"
   end
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => true, :key=>"*" do |msg|
     raise "something went wrong"
-  end    
+  end
 end
 
-class TestProcessorWithoutAck < BaseProcessor
+class TestProcessorWithoutAck < Qnatra::Processor
   system_event do |msg|
     puts "SYSTEM_EVENT: #{msg}"
   end
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => false, :key=>"*" do |msg|
     raise "something went wrong"
-  end    
+  end
 end
 
-describe BaseProcessor do
+describe Qnatra::Processor do
 
   before(:each) do
-    client = Bunny.new bunny_settings 
+    client = Bunny.new bunny_settings
     client.start
     queue = client.queue('qnatra.test.queue')
     begin
@@ -54,9 +50,9 @@ describe BaseProcessor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithAck.stop
-    sleep 3 
+    sleep 3
 
     queue = client.queue('qnatra.test.queue')
 
@@ -65,7 +61,7 @@ describe BaseProcessor do
 
     client.stop
   end
-  
+
   it "should requeue messages, that raise an exeception" do
     @thread = Thread.new do
       TestProcessorWithAck.start :host => rabbit_host, :port => rabbit_port
@@ -77,9 +73,9 @@ describe BaseProcessor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithAck.stop
-    sleep 3 
+    sleep 3
 
     queue = client.queue('qnatra.test.queue')
 
@@ -103,12 +99,12 @@ describe BaseProcessor do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("content dsnt matter", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithoutAck.stop
     sleep 3
 
     queue = client.queue('qnatra.test.queue')
-    
+
     msg = queue.pop
     msg[:payload].should eq(:queue_empty)
 
