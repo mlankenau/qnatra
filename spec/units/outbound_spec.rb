@@ -12,12 +12,12 @@ class TestProcessorWithOutbound < Qnatra::Processor
     puts "hurra, got a msg"
     post(:sample_outbound, msg[:payload], :key => 'mail')
     puts "finished sending"
-  end    
+  end
 end
 
 describe TestProcessorWithOutbound do
   before(:each) do
-    client = Bunny.new bunny_settings 
+    client = Bunny.new bunny_settings
     client.start
     queue = client.queue('qnatra.test.queue')
     begin
@@ -38,7 +38,7 @@ describe TestProcessorWithOutbound do
         puts "error in processor: #{e}"
       end
     end
-    
+
     client = Bunny.new bunny_settings
     client.start
 
@@ -49,7 +49,7 @@ describe TestProcessorWithOutbound do
     ex = client.exchange('qnatra.test.exchange', :type => :topic)
     ex.publish("something to forward", :key => 'mail')
 
-    sleep 3 
+    sleep 3
     TestProcessorWithOutbound.stop
     sleep 3
 

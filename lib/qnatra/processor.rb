@@ -111,24 +111,9 @@ module Qnatra
           client = Bunny.new(settings)
           client.start
 
-          @outbounds ||= {}
-          @outbounds.each do |k,v|
-            exchange = client.exchange(v[:exchange_name], :type => v[:type])
-            @outbounds[k][:exchange] = exchange
-          end
+          init_outbounds(client)
+          init_processes(client)
 
-          @processes.each do |p|
-            exchange = client.exchange( p[:exchange], :type => :topic )
-            queue = client.queue( p[:queue] )
-            if p[:key].is_a? Array
-              p[:key].each do | rk |
-                queue.bind(exchange, :key => rk)
-              end
-            else
-              queue.bind(exchange, :key => p[:key])
-            end
-            p[:the_queue] = queue
-          end
 
           # endless loop and pop queues
           process_loop
@@ -178,6 +163,29 @@ module Qnatra
             got_a_msg = true
           end
           #sleep 0.01 unless got_a_msg # wait 100ms if all queues are empty
+        end
+      end
+
+      def init_outbounds(client)
+        @outbounds ||= {}
+        @outbounds.each do |k,v|
+          exchange = client.exchange(v[:exchange_name], :type => v[:type])
+          @outbounds[k][:exchange] = exchange
+        end
+      end
+
+      def init_processes(client)
+        @processes.each do |p|
+          exchange = client.exchange( p[:exchange], :type => :topic )
+          queue = client.queue( p[:queue] )
+          if p[:key].is_a? Array
+            p[:key].each do | rk |
+              queue.bind(exchange, :key => rk)
+            end
+          else
+            queue.bind(exchange, :key => p[:key])
+          end
+          p[:the_queue] = queue
         end
       end
 
