@@ -210,3 +210,12 @@ module Qnatra
     end
   end
 end
+
+# Added this class for backward compatibility.
+# TODO Remove this class after a while
+class BaseProcessor < Qnatra::Processor
+  def self.start(settings = Hash.new)
+    $stderr.puts 'DEPRECATION: BaseProcessor is deprecated, please use Qnatra::Processor'
+    super(settings)
+  end
+end

@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency('bunny', '>= 0.7.9')
 
   s.add_development_dependency "rspec"
+  s.add_development_dependency "rake"
   s.add_development_dependency "yard"
   s.add_development_dependency "redcarpet"
 end
