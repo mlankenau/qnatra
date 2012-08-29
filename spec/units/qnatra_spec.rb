@@ -5,8 +5,8 @@ rabbit_port = ENV['RABBIT_PORT'] || 5672
 bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
 class TestProcessorWithAck < Qnatra::Processor
-  system_event do |msg|
-    puts "SYSTEM_EVENT: #{msg}"
+  system_event do |status, msg|
+    puts "SYSTEM_EVENT: #{status} #{msg}"
   end
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => true, :key=>"*" do |msg|
     raise "something went wrong"
@@ -14,8 +14,8 @@ class TestProcessorWithAck < Qnatra::Processor
 end
 
 class TestProcessorWithoutAck < Qnatra::Processor
-  system_event do |msg|
-    puts "SYSTEM_EVENT: #{msg}"
+  system_event do |status, msg|
+    puts "SYSTEM_EVENT: (#{status}) #{msg}"
   end
   process :exchange => "qnatra.test.exchange", :queue => "qnatra.test.queue", :ack => false, :key=>"*" do |msg|
     raise "something went wrong"

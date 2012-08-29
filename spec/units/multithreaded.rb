@@ -6,8 +6,8 @@ bunny_settings = { :host => rabbit_host, :port => rabbit_port }
 
 class TestProcessorWithMultithreading < Qnatra::Processor
 
-  system_event do |msg|
-    puts "SYSTEM_EVENT: #{msg}"
+  system_event do |status, msg|
+    puts "SYSTEM_EVENT: (#{status}) #{msg}"
   end
 
   def self.work_queue 
